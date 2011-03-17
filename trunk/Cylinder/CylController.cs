@@ -16,6 +16,18 @@ public class CylController : MonoBehaviour
         Normal, Spiky
     }
 	
+	// Variables to change size on the fly
+	private int stepSize = 2;
+	private Vector3 localScale;
+	private bool sizeKeyPressed = false;
+	private bool sizeChanged = false;
+	
+	// Variables to change speed on the fly
+	private int stepSize = 0;
+	private int torqueAmount;
+	private bool speedKeyPressed = false;
+	private bool speedChanged = false;
+	
 	// Wheels variables
     public Rigidbody leftWheel, rightWheel;
     private Transform lw_t, rw_t;
@@ -52,6 +64,10 @@ public class CylController : MonoBehaviour
         t = this.transform;
         rb = this.rigidbody;
         ct = followingCamera.transform;
+		
+		// Copy the local scale to use it later
+		localScale = t.localScale;
+		
 
         l_cyl_w = (CylinderWheel)leftWheel.GetComponent(typeof(CylinderWheel));
         r_cyl_w = (CylinderWheel)rightWheel.GetComponent(typeof(CylinderWheel));
@@ -63,6 +79,50 @@ public class CylController : MonoBehaviour
         // Update the camera movement
         ct.position = Vector3.MoveTowards(ct.position, cameraTarget, Time.deltaTime * Mathf.Max(rb.velocity.magnitude, cameraMiniumVelocity));
         ct.LookAt(t);
+		
+		// If the size changed than apply it to the trasformation of the object
+		if(sizeChanged) {
+			switch(stepSize) {
+				case 0:
+					localScale.y = 0.8f;
+					break;
+				case 1:
+					localScale.y = 1.2f;
+					break;
+				case 2:
+					localScale.y = 1.668569f;
+					break;
+				case 3:
+					localScale.y = 2.0f;
+					break;
+				case 4:
+					localScale.y = 2.5f;
+					break;
+			}
+			
+			t.localScale = localScale;
+			sizeChanged = false;
+		}
+		
+		// Input managing for changing size
+		if (!sizeKeyPressed) {
+			if (Input.GetKey("p")) {
+					if (stepSize < 4)
+						stepSize += 1;
+					sizeKeyPressed = true;
+					sizeChanged = true;
+			}
+			if (Input.GetKey("l")) {
+					if (stepSize > 0)
+						stepSize -= 1;
+					sizeKeyPressed = true;
+					sizeChanged = true;
+			}
+		} else if (!Input.GetKey("p") && !Input.GetKey("l"))
+			sizeKeyPressed = false;
+		
+		
+		
     }
 
     void FixedUpdate()
@@ -89,6 +149,8 @@ public class CylController : MonoBehaviour
 		//if (Input.GetButtonDown("Fire10"))	print("Button 11");
 		//if (Input.GetButtonDown("Fire11"))	print("Button 12");
         //else if (cylinder.controlScheme == CylController.ControlScheme.XBoxController)
+		
+			
     }
 	
 	private void calculateAxis(){
