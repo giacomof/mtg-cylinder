@@ -23,7 +23,7 @@ public class CylController : MonoBehaviour
 	private bool sizeChanged = false;
 	
 	// Variables to change speed on the fly
-	private int stepSize = 0;
+	private int stepSpeed = 0;
 	private int torqueAmount;
 	private bool speedKeyPressed = false;
 	private bool speedChanged = false;
