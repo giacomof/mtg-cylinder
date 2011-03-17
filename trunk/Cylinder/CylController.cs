@@ -135,7 +135,7 @@ public class CylController : MonoBehaviour
 	// Calculate the camera position in relation to the orientation points
     private Vector3 computeCameraPosition()
     {
-        Vector3 forward = (l_cyl_w.forward_orientation - l_cyl_w.backward_orientation + r_cyl_w.forward_orientation - r_cyl_w.backward_orientation).normalized;
+        Vector3 forward = (l_cyl_w.forward_orientation + r_cyl_w.forward_orientation).normalized;
         Vector3 downward = (l_cyl_w.downward_orientation + r_cyl_w.downward_orientation).normalized;
         return t.position + (forward * -cameraDistanceBackward) + (downward * -cameraDistanceUpward);
     }
