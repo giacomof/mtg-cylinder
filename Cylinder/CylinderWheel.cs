@@ -18,6 +18,9 @@ public class CylinderWheel : MonoBehaviour
     private Rigidbody rb;
 	private Vector3 addedVelo, collisionNormal = Vector3.up;
 	
+	// Force applyed to the wheel when jumping
+	public float jumpForce = 100.0f;
+	
 	
     void Start()
     {
@@ -52,6 +55,11 @@ public class CylinderWheel : MonoBehaviour
         {
             rb.drag = cylinder.accelerationDrag;
         }
+		
+		// If the key is pressed and we are onGround, 
+		// then apply the jump force on the collisionNormal direction
+		if (Input.GetKey("j") && _onGround)
+			rb.AddForce(collisionNormal * jumpForce, ForceMode.Impulse);
     }
 
     void computeOrientation()

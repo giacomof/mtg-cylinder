@@ -16,11 +16,13 @@ public class CylController : MonoBehaviour
         Normal, Spiky
     }
 	
-    //// Variables to change size on the fly
-    //private int stepSize = 2;
-    //private Vector3 localScale;
-    //private bool sizeKeyPressed = false;
-    //private bool sizeChanged = false;
+	/*
+    // Variables to change size on the fly
+    private int stepSize = 2;
+    private Vector3 localScale;
+    private bool sizeKeyPressed = false;
+    private bool sizeChanged = false;
+    */
 	
 	// Variables to change speed on the fly
 	private int stepSpeed = 0;
@@ -32,7 +34,7 @@ public class CylController : MonoBehaviour
     private Transform lw_t, rw_t;
 	
 	// Movement variables
-    public float accelerationDrag = 0, brakeDrag = 10, jumpForce, throttleForce = 10, wheelMass = 4, downwardForceFactor = 2.0f;
+    public float accelerationDrag = 0, brakeDrag = 10, throttleForce = 10, wheelMass = 4, downwardForceFactor = 2.0f;
 	private Transform t, ct;
     private Rigidbody rb;
     private CylinderWheel l_cyl_w, r_cyl_w;
@@ -64,8 +66,10 @@ public class CylController : MonoBehaviour
         rb = this.rigidbody;
         ct = followingCamera.transform;
 		
-        //// Copy the local scale to use it later
-        //localScale = t.localScale;	
+		/*
+        // Copy the local scale to use it later
+        localScale = t.localScale;
+        */	
 
         l_cyl_w = (CylinderWheel)leftWheel.GetComponent(typeof(CylinderWheel));
         r_cyl_w = (CylinderWheel)rightWheel.GetComponent(typeof(CylinderWheel));
@@ -78,29 +82,33 @@ public class CylController : MonoBehaviour
         ct.position = Vector3.MoveTowards(ct.position, cameraTarget, Time.deltaTime * Mathf.Max(rb.velocity.magnitude, cameraMiniumVelocity));
         ct.LookAt(t);
 		
-        //// If the size changed than apply it to the trasformation of the object
-        //if(sizeChanged) {
-        //    switch(stepSize) {
-        //        case 0:
-        //            localScale.y = 0.8f;
-        //            break;
-        //        case 1:
-        //            localScale.y = 1.2f;
-        //            break;
-        //        case 2:
-        //            localScale.y = 1.668569f;
-        //            break;
-        //        case 3:
-        //            localScale.y = 2.0f;
-        //            break;
-        //        case 4:
-        //            localScale.y = 2.5f;
-        //            break;
-        //    }
-			
-        //    t.localScale = localScale;
-        //    sizeChanged = false;
-        //}
+		/*
+        // If the size changed than apply it to the trasformation of the object
+        if (sizeChanged)
+        {
+            switch (stepSize)
+            {
+                case 0:
+                    localScale.y = 0.8f;
+                    break;
+                case 1:
+                    localScale.y = 1.2f;
+                    break;
+                case 2:
+                    localScale.y = 1.668569f;
+                    break;
+                case 3:
+                    localScale.y = 2.0f;
+                    break;
+                case 4:
+                    localScale.y = 2.5f;
+                    break;
+            }
+
+            t.localScale = localScale;
+            sizeChanged = false;
+        }
+        */
 		
 		// If the size changed than apply it to the trasformation of the object
 		if(speedChanged) {
@@ -124,22 +132,28 @@ public class CylController : MonoBehaviour
 			speedChanged = false;
 		}
 		
-        //// Input managing for changing size
-        //if (!sizeKeyPressed) {
-        //    if (Input.GetKey("p")) {
-        //            if (stepSize < 4)
-        //                stepSize += 1;
-        //            sizeKeyPressed = true;
-        //            sizeChanged = true;
-        //    }
-        //    if (Input.GetKey("l")) {
-        //            if (stepSize > 0)
-        //                stepSize -= 1;
-        //            sizeKeyPressed = true;
-        //            sizeChanged = true;
-        //    }
-        //} else if (!Input.GetKey("p") && !Input.GetKey("l"))
-        //    sizeKeyPressed = false;
+		/*
+        // Input managing for changing size
+        if (!sizeKeyPressed)
+        {
+            if (Input.GetKey("p"))
+            {
+                if (stepSize < 4)
+                    stepSize += 1;
+                sizeKeyPressed = true;
+                sizeChanged = true;
+            }
+            if (Input.GetKey("l"))
+            {
+                if (stepSize > 0)
+                    stepSize -= 1;
+                sizeKeyPressed = true;
+                sizeChanged = true;
+            }
+        }
+        else if (!Input.GetKey("p") && !Input.GetKey("l"))
+          sizeKeyPressed = false;
+        */
 		
 		// Input managing for changing speed
 		if (!speedKeyPressed) {
@@ -178,7 +192,7 @@ public class CylController : MonoBehaviour
         //if (Input.GetButtonDown("Fire5"))	print("Button 6");
         //if (Input.GetButtonDown("Fire6"))	print("Button 7");
         if (Input.GetButtonDown("Fire7"))	//print("Button 8");
-			rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+			//rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         if (Input.GetButtonDown("Fire8"))	print("Button 9");
         if (Input.GetButtonDown("Fire9"))	//print("Button 10");
             Application.LoadLevel(0);
