@@ -8,15 +8,17 @@ public class CylinderWheel : MonoBehaviour
 
 
     public CylController cylinder;
-	public Vector3 forward_orientation, backward_orientation, downward_orientation/*, upward_orientation*/;
-    public Transform orientationPointFront, orientationPointRear;
-	public float throttleValue;
 	public Transform wheelModel;
+	public Vector3 forward_orientation, backward_orientation, downward_orientation;
+	
+	public float throttleValue;
+	
 	
     bool _onGround = false;
     private Rigidbody rb;
-	private Vector3 addedVelo;
-
+	private Vector3 addedVelo, collisionNormal = Vector3.up;
+	
+	
     void Start()
     {
         rb = this.rigidbody;
@@ -39,19 +41,12 @@ public class CylinderWheel : MonoBehaviour
 				rb.drag = cylinder.brakeDrag;
 			}
 			else{
-				addedVelo = Vector3.zero;
-				if (throttleValue > 0)
-					addedVelo += forward_orientation * throttleValue;
-				if (throttleValue < 0) 
-					addedVelo -= backward_orientation * throttleValue;
+				addedVelo = forward_orientation * throttleValue;
 				
 				// Throttle applied:
 				rb.drag = cylinder.accelerationDrag;
 				rb.AddForce(addedVelo);
 			}
-			
-			// Apply some custom inertia:
-            rb.AddForce(downward_orientation * rb.velocity.magnitude * cylinder.downwardForceFactor);
         }
         else
         {
@@ -60,39 +55,10 @@ public class CylinderWheel : MonoBehaviour
     }
 
     void computeOrientation()
-    {
-        Vector3 forward = Vector3.Cross(cylinder.cylinderOrientation, Vector3.up).normalized;
-        RaycastHit hit = new RaycastHit();
-
-        //Forward orientation:
-        orientationPointFront.position = rb.position + forward + (Vector3.up * .85f);
-        if (Physics.Raycast(orientationPointFront.position, Vector3.down, out hit, 2))
-        {
-            orientationPointFront.Translate(Vector3.down * hit.distance, Space.World);
-            orientationPointFront.Translate(Vector3.up * .6f, Space.World);
-        }
-        else
-        {
-            orientationPointFront.position = rb.position + forward;
-        }
-
-        //Backward orientation:
-        orientationPointRear.position = rb.position - forward + (Vector3.up * .85f);
-        if (Physics.Raycast(orientationPointRear.position, Vector3.down, out hit, 2))
-        {
-            orientationPointRear.Translate(Vector3.down * hit.distance, Space.World);
-            orientationPointRear.Translate(Vector3.up * .6f, Space.World);
-        }
-        else
-        {
-            orientationPointRear.position = rb.position - forward;
-        }
-
+	{
         //Calculate orientation vectors:
-        forward_orientation = (orientationPointFront.position - rb.position).normalized;
-        backward_orientation = (orientationPointRear.position - rb.position).normalized;
-        downward_orientation = Vector3.Cross(cylinder.cylinderOrientation, forward_orientation).normalized;
-		//upward_orientation = Vector3.Cross(cylinder.cylinderOrientation, backward_orientation).normalized;
+        forward_orientation = Vector3.Cross(cylinder.cylinderOrientation, collisionNormal).normalized;
+        downward_orientation = -collisionNormal;
     }
 
     void OnCollisionStay(Collision collision)
@@ -101,7 +67,9 @@ public class CylinderWheel : MonoBehaviour
         {
             //We have touched ground:
             _onGround = true;
-            //Debug.Log(gameObject.name + " ground touched!");
+			//Debug.DrawLine(rb.position, rb.position + (collision.contacts[0].normal * 3), new Color(0, 0, 0));
+			//Get the collision normal (awesome feature!!!!!):
+			collisionNormal = collision.contacts[0].normal;
         }
     }
 
@@ -111,7 +79,7 @@ public class CylinderWheel : MonoBehaviour
         {
             //We have left the ground:
             _onGround = false;
-            //Debug.Log(gameObject.name + " ground left!");
+			
         }
     }
 }
