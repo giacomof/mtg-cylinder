@@ -9,7 +9,7 @@ public class CylinderWheel : MonoBehaviour
 
     public CylController cylinder;
 	public Transform wheelModel;
-	public Vector3 forward_orientation, backward_orientation, downward_orientation;
+	public Vector3 forward_orientation, downward_orientation;
 	
 	public float throttleValue;
 	
