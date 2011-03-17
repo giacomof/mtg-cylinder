@@ -124,22 +124,22 @@ public class CylController : MonoBehaviour
 			speedChanged = false;
 		}
 		
-		// Input managing for changing size
-		if (!sizeKeyPressed) {
-			if (Input.GetKey("p")) {
-					if (stepSize < 4)
-						stepSize += 1;
-					sizeKeyPressed = true;
-					sizeChanged = true;
-			}
-			if (Input.GetKey("l")) {
-					if (stepSize > 0)
-						stepSize -= 1;
-					sizeKeyPressed = true;
-					sizeChanged = true;
-			}
-		} else if (!Input.GetKey("p") && !Input.GetKey("l"))
-			sizeKeyPressed = false;
+        //// Input managing for changing size
+        //if (!sizeKeyPressed) {
+        //    if (Input.GetKey("p")) {
+        //            if (stepSize < 4)
+        //                stepSize += 1;
+        //            sizeKeyPressed = true;
+        //            sizeChanged = true;
+        //    }
+        //    if (Input.GetKey("l")) {
+        //            if (stepSize > 0)
+        //                stepSize -= 1;
+        //            sizeKeyPressed = true;
+        //            sizeChanged = true;
+        //    }
+        //} else if (!Input.GetKey("p") && !Input.GetKey("l"))
+        //    sizeKeyPressed = false;
 		
 		// Input managing for changing speed
 		if (!speedKeyPressed) {
