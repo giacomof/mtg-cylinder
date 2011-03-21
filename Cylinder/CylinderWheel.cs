@@ -4,15 +4,11 @@ using System.Collections;
 [RequireComponent(typeof(Rigidbody))]
 public class CylinderWheel : MonoBehaviour
 {
-
-
-
     public CylController cylinder;
 	public Transform wheelModel;
-	public Vector3 forward_orientation, downward_orientation;
+	public Vector3 forward_orientation, downward_orientation, orientation_right;
 	
 	public float throttleValue;
-	
 	
     bool _onGround = false;
     private Rigidbody rb;
@@ -21,6 +17,10 @@ public class CylinderWheel : MonoBehaviour
 	// Force applyed to the wheel when jumping
 	public float jumpForce = 100.0f;
 	private bool haveToJump = false;
+	//Air steering
+	private bool airSteering = false;
+	private float airPower = 2f;	//Should probably be in the range of 1-2
+	private int airDirection = 0;
 	
 	
     void Start()
@@ -34,22 +34,19 @@ public class CylinderWheel : MonoBehaviour
 		wheelModel.RotateAroundLocal(Vector3.up, throttleValue * Time.deltaTime * cylinder.animationSpeed);
     }
 
-    void FixedUpdate()
-    {
+    void FixedUpdate() {
         computeOrientation();
-        if (_onGround)
-        {
+        if (_onGround) {
 			if (haveToJump) {
 				rb.AddForce(collisionNormal * jumpForce, ForceMode.Impulse);
 				haveToJump = false;
 			}
 			
-			if (throttleValue == 0)
-			{
+			if (throttleValue == 0) {
 				// No throttle applied:
 				rb.drag = cylinder.brakeDrag;
 			}
-			else{
+			else {
 				addedVelo = forward_orientation * throttleValue;
 				
 				// Throttle applied:
@@ -57,9 +54,12 @@ public class CylinderWheel : MonoBehaviour
 				rb.AddForce(addedVelo);
 			}
         }
-        else
-        {
+		else {
             rb.drag = cylinder.accelerationDrag;
+			if (airSteering) {
+				rb.AddForce(airDirection * orientation_right * airPower, ForceMode.Impulse);
+				airSteering = false;
+			}
         }
 		
 		// If the key is pressed and we are onGround, 
@@ -70,12 +70,22 @@ public class CylinderWheel : MonoBehaviour
 	public void doJump() {
 		haveToJump = true;
 	}
+	
+	public void doSteer(bool goingLeft) {
+		airSteering = true;
+		if (goingLeft)
+			airDirection = -1;
+		else
+			airDirection = 1;
+	}
 
     void computeOrientation()
 	{
         //Calculate orientation vectors:
         forward_orientation = Vector3.Cross(cylinder.cylinderOrientation, collisionNormal).normalized;
         downward_orientation = -collisionNormal;
+		orientation_right = Vector3.Cross(forward_orientation, downward_orientation);
+		print(orientation_right);
     }
 
     void OnCollisionStay(Collision collision)
@@ -99,4 +109,8 @@ public class CylinderWheel : MonoBehaviour
 			
         }
     }
+	
+	public bool OnGround() {
+		return _onGround;
+	}	
 }
