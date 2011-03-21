@@ -19,7 +19,7 @@ public class CylinderWheel : MonoBehaviour
 	private bool haveToJump = false;
 	//Air steering
 	private bool airSteering = false;
-	private float airPower = 2f;	//Should probably be in the range of 1-2
+	private float airPower = 4f;	//Should probably be in the range of 1-2
 	private int airDirection = 0;
 	
 	
@@ -85,7 +85,6 @@ public class CylinderWheel : MonoBehaviour
         forward_orientation = Vector3.Cross(cylinder.cylinderOrientation, collisionNormal).normalized;
         downward_orientation = -collisionNormal;
 		orientation_right = Vector3.Cross(forward_orientation, downward_orientation);
-		print(orientation_right);
     }
 
     void OnCollisionStay(Collision collision)
@@ -112,5 +111,5 @@ public class CylinderWheel : MonoBehaviour
 	
 	public bool OnGround() {
 		return _onGround;
-	}	
+	}
 }
