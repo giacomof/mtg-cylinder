@@ -20,6 +20,7 @@ public class CylinderWheel : MonoBehaviour
 	
 	// Force applyed to the wheel when jumping
 	public float jumpForce = 100.0f;
+	private bool haveToJump = false;
 	
 	
     void Start()
@@ -38,6 +39,11 @@ public class CylinderWheel : MonoBehaviour
         computeOrientation();
         if (_onGround)
         {
+			if (haveToJump) {
+				rb.AddForce(collisionNormal * jumpForce, ForceMode.Impulse);
+				haveToJump = false;
+			}
+			
 			if (throttleValue == 0)
 			{
 				// No throttle applied:
@@ -58,9 +64,12 @@ public class CylinderWheel : MonoBehaviour
 		
 		// If the key is pressed and we are onGround, 
 		// then apply the jump force on the collisionNormal direction
-		if (Input.GetKey("j") && _onGround)
-			rb.AddForce(collisionNormal * jumpForce, ForceMode.Impulse);
+		//if (Input.GetKey("j") && _onGround)
     }
+	
+	public void doJump() {
+		haveToJump = true;
+	}
 
     void computeOrientation()
 	{
