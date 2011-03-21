@@ -37,7 +37,7 @@ public class CylController : MonoBehaviour
     private CylinderWheel l_cyl_w, r_cyl_w;
 	
 	// Control variables
-	public ControlScheme controlScheme = ControlScheme.Keyboard;
+	public ControlScheme controlScheme/* = ControlScheme.Keyboard*/;
 	public float minAnalogStickDifference = .2f;
 	
 	//Camera variables
