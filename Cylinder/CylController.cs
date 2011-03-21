@@ -191,8 +191,21 @@ public class CylController : MonoBehaviour
         //if (Input.GetButtonDown("Fire4"))	print("Button 5");
         //if (Input.GetButtonDown("Fire5"))	print("Button 6");
         //if (Input.GetButtonDown("Fire6"))	print("Button 7");
-        if (Input.GetButtonDown("Fire7"))	//print("Button 8");
+		
+        //if (Input.GetButtonDown("Fire7")) {	//print("Button 8");
 			//rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+		if (Input.GetKey("j")) {
+			transform.Find("LeftWheel").GetComponent<CylinderWheel>().doJump();
+			transform.Find("RightWheel").GetComponent<CylinderWheel>().doJump();
+		}
+		if (Input.GetKey("u")) {
+			l_cyl_w.doJump();
+		}
+		if (Input.GetKey("i")) {
+			r_cyl_w.doJump();
+		}
+			
+		
         if (Input.GetButtonDown("Fire8"))	print("Button 9");
         if (Input.GetButtonDown("Fire9"))	//print("Button 10");
             Application.LoadLevel(0);
