@@ -5,14 +5,11 @@ using System.Collections;
 public class CylController : MonoBehaviour
 {
 	// Enum for the different input devices
-    public enum ControlScheme
-    {
+    public enum ControlScheme {
         Keyboard, RumblePad, XBoxController
 	}
 	
-	
-    public enum CylinderMode
-    {
+    public enum CylinderMode {
         Normal, Spiky
     }
 	
@@ -54,9 +51,10 @@ public class CylController : MonoBehaviour
     public Vector3 cylinderOrientation;
 	public float animationSpeed = .1f;
 	
-
-    void Start()
-    {
+	//Axis input
+	float leftWheelXValue = 0, leftWheelYValue = 0, rightWheelXValue = 0, rightWheelYValue = 0;
+	
+    void Start() {
 		// Assign all the used variables
         lw_t = leftWheel.transform;
         rw_t = rightWheel.transform;
@@ -75,12 +73,13 @@ public class CylController : MonoBehaviour
         r_cyl_w = (CylinderWheel)rightWheel.GetComponent(typeof(CylinderWheel));
     }
 	
-
-    void Update()
-    {
+    void Update() {
         // Update the camera movement
         ct.position = Vector3.MoveTowards(ct.position, cameraTarget, Time.deltaTime * Mathf.Max(rb.velocity.magnitude, cameraMiniumVelocity));
         ct.LookAt(t);
+		
+		//Adjust for Air Steering
+		AirSteering();
 		
 		/*
         // If the size changed than apply it to the trasformation of the object
@@ -169,11 +168,9 @@ public class CylController : MonoBehaviour
 					speedKeyPressed = true;
 					speedChanged = true;
 			}
-		} else if (!Input.GetKey("o") && !Input.GetKey("k"))
+		}
+		else if (!Input.GetKey("o") && !Input.GetKey("k"))
 			speedKeyPressed = false;
-		
-		
-		
     }
 
     void FixedUpdate()
@@ -184,16 +181,27 @@ public class CylController : MonoBehaviour
 		// Calculate the axis values
 		calculateAxis();
 		
+		//RumblePad
         if (Input.GetButtonDown("Fire1"))	print("Button 1");
         if (Input.GetButtonDown("Fire2"))	print("Button 2");
         if (Input.GetButtonDown("Fire3"))	print("Button 3");
         if (Input.GetButtonDown("Jump"))	print("Button 4");
-        //if (Input.GetButtonDown("Fire4"))	print("Button 5");
-        //if (Input.GetButtonDown("Fire5"))	print("Button 6");
-        //if (Input.GetButtonDown("Fire6"))	print("Button 7");
-		
-        //if (Input.GetButtonDown("Fire7")) {	//print("Button 8");
+        if (Input.GetButtonDown("Fire4"))	print("Button 5");
+			//l_cyl_w.doJump();
+        if (Input.GetButtonDown("Fire5"))	print("Button 6");
+			//r_cyl_w.doJump();
+        if (Input.GetButtonDown("Fire6"))	print("Button 7");
+        if (Input.GetButtonDown("Fire7")) {print("Button 8");
+			//transform.Find("LeftWheel").GetComponent<CylinderWheel>().doJump();
+			//transform.Find("RightWheel").GetComponent<CylinderWheel>().doJump();
+		}
 			//rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        if (Input.GetButtonDown("Fire8"))	print("Button 9");
+        if (Input.GetButtonDown("Fire9"))	//print("Button 10");
+            Application.LoadLevel(0);
+		if (Input.GetButtonDown("Fire10"))	print("Button 11");
+		if (Input.GetButtonDown("Fire11"))	print("Button 12");
+		//Keyboard
 		if (Input.GetKey("j")) {
 			transform.Find("LeftWheel").GetComponent<CylinderWheel>().doJump();
 			transform.Find("RightWheel").GetComponent<CylinderWheel>().doJump();
@@ -204,58 +212,49 @@ public class CylController : MonoBehaviour
 		if (Input.GetKey("i")) {
 			r_cyl_w.doJump();
 		}
-			
-		
-        if (Input.GetButtonDown("Fire8"))	print("Button 9");
-        if (Input.GetButtonDown("Fire9"))	//print("Button 10");
-            Application.LoadLevel(0);
-        //}
-		//if (Input.GetButtonDown("Fire10"))	print("Button 11");
-		//if (Input.GetButtonDown("Fire11"))	print("Button 12");
-        //else if (cylinder.controlScheme == CylController.ControlScheme.XBoxController)
-		
-			
-    }
+	}
 	
 	private void calculateAxis(){
-		
-		float leftWheelAxisValue = 0, rightWheelAxisValue = 0;
+		/*float leftWheelXValue = 0, leftWheelYValue = 0, 
+			rightWheelXValue = 0, rightWheelYValue = 0;*/
 		
 		// Different input systems related to the devices
 		switch (controlScheme){
 		case ControlScheme.Keyboard:
 			if (Input.GetKey("q"))
-				leftWheelAxisValue += 1;
+				leftWheelYValue += 1;
 			if (Input.GetKey("a"))
-				leftWheelAxisValue -= 1;
+				leftWheelYValue -= 1;
 			if (Input.GetKey("e"))
-				rightWheelAxisValue += 1;
+				rightWheelYValue += 1;
 			if (Input.GetKey("d"))
-				rightWheelAxisValue -= 1;
+				rightWheelYValue -= 1;
 			break;
 		case ControlScheme.RumblePad:
-			leftWheelAxisValue = Input.GetAxis("Vertical");
-			rightWheelAxisValue = Input.GetAxis("VerticalRight");
+			leftWheelXValue	= Input.GetAxis("Horizontal");
+			leftWheelYValue	= Input.GetAxis("Vertical");
+			rightWheelXValue	= Input.GetAxis("HorizontalRight");
+			rightWheelYValue	= Input.GetAxis("VerticalRight");
 			break;
 		case ControlScheme.XBoxController:
-			leftWheelAxisValue = Input.GetAxis("Vertical");
-			rightWheelAxisValue = Input.GetAxis("VerticalRightXBox");
+			leftWheelYValue 	= Input.GetAxis("Vertical");
+			rightWheelYValue = Input.GetAxis("VerticalRightXBox");
 			break;
 		}
 		
 		// Code for uniforming the wheel speed to make easier to go straight ahead
-		if (leftWheelAxisValue != 0 && rightWheelAxisValue != 0){
-			float difference = Mathf.Abs(leftWheelAxisValue - rightWheelAxisValue);
+		if (leftWheelYValue != 0 && rightWheelYValue != 0){
+			float difference = Mathf.Abs(leftWheelYValue - rightWheelYValue);
 			
 			if (difference < minAnalogStickDifference){
-				leftWheelAxisValue = Mathf.Max(leftWheelAxisValue, rightWheelAxisValue);
-				rightWheelAxisValue = leftWheelAxisValue;
+				leftWheelYValue = Mathf.Max(leftWheelYValue, rightWheelYValue);
+				rightWheelYValue = leftWheelYValue;
 			}	
 		}
 		
 		// Assign to the wheels the right velocity
-		l_cyl_w.throttleValue = leftWheelAxisValue * throttleForce;
-		r_cyl_w.throttleValue = rightWheelAxisValue * throttleForce;
+		l_cyl_w.throttleValue = leftWheelYValue * throttleForce;
+		r_cyl_w.throttleValue = rightWheelYValue * throttleForce;
 	}
 	
 	// Calculate the camera position in relation to the orientation points
@@ -271,6 +270,19 @@ public class CylController : MonoBehaviour
     {
         this.cylinderOrientation = rw_t.position - lw_t.position;
     }
-
-
+	
+	void AirSteering() {
+		if (l_cyl_w.OnGround() && r_cyl_w.OnGround()) {
+		}
+		else {
+			if (leftWheelXValue < 0 && leftWheelXValue < 0) {
+				l_cyl_w.doSteer(true);
+				r_cyl_w.doSteer(true);
+			}
+			if (leftWheelXValue > 0 && rightWheelXValue > 0) {
+				l_cyl_w.doSteer(false);
+				r_cyl_w.doSteer(false);
+			}
+		}
+	}
 }
