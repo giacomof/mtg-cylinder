@@ -35,6 +35,16 @@ public class CylController : MonoBehaviour
 	private Transform t, ct;
     private Rigidbody rb;
     private CylinderWheel l_cyl_w, r_cyl_w;
+	// Turbo variables
+	public float turboDuration = 2.0f;
+	public float turboRechargeDuration = 1.0f;
+	public float turboFOV = 90.0f;
+	public float originalFOV = 60.0f;
+	public float fovIncrement = 0.5f;
+	private int previousSpeedStep;
+	private bool canTurbo = true;
+	private bool alreadyTurbo = false;
+	private float turboTimer;
 	
 	// Control variables
 	public ControlScheme controlScheme/* = ControlScheme.Keyboard*/;
@@ -109,6 +119,33 @@ public class CylController : MonoBehaviour
         }
         */
 		
+		//Turbo code
+		if((canTurbo && !alreadyTurbo) && Input.GetKey("t")) {
+			alreadyTurbo = true;
+			turboTimer = Time.realtimeSinceStartup;
+			speedChanged = true;
+			throttleForce = 1600;
+		} else if (Time.realtimeSinceStartup - turboTimer > turboDuration) {
+			alreadyTurbo = false;
+			canTurbo = false;
+			turboTimer = Time.realtimeSinceStartup;
+			speedChanged = true;
+			stepSpeed = previousSpeedStep;
+		}
+		
+		if(!alreadyTurbo && followingCamera.fov > originalFOV)
+			followingCamera.fov -= fovIncrement;
+		else if(alreadyTurbo && followingCamera.fov < turboFOV)
+			followingCamera.fov += fovIncrement;
+		
+		if(!canTurbo) {
+			if (Time.realtimeSinceStartup - turboTimer > turboRechargeDuration)
+				canTurbo = true;
+		}
+			
+			
+		
+		
 		// If the size changed than apply it to the trasformation of the object
 		if(speedChanged) {
 			switch(stepSpeed) {
@@ -157,20 +194,27 @@ public class CylController : MonoBehaviour
 		// Input managing for changing speed
 		if (!speedKeyPressed) {
 			if (Input.GetKey("o")) {
-					if (stepSpeed < 4)
+					if (stepSpeed < 4) {
 						stepSpeed += 1;
+						previousSpeedStep = stepSpeed;
+					}
 					speedKeyPressed = true;
 					speedChanged = true;
 			}
 			if (Input.GetKey("k")) {
-					if (stepSpeed > 0)
+					if (stepSpeed > 0) {
 						stepSpeed -= 1;
+						previousSpeedStep = stepSpeed;
+					}
 					speedKeyPressed = true;
 					speedChanged = true;
 			}
 		}
 		else if (!Input.GetKey("o") && !Input.GetKey("k"))
 			speedKeyPressed = false;
+		
+		
+		
     }
 
     void FixedUpdate()
@@ -203,8 +247,8 @@ public class CylController : MonoBehaviour
 		if (Input.GetButtonDown("Fire11"))	print("Button 12");
 		//Keyboard
 		if (Input.GetKey("j")) {
-			transform.Find("LeftWheel").GetComponent<CylinderWheel>().doJump();
-			transform.Find("RightWheel").GetComponent<CylinderWheel>().doJump();
+			l_cyl_w.doJump();
+			r_cyl_w.doJump();
 		}
 		if (Input.GetKey("u")) {
 			l_cyl_w.doJump();
@@ -212,23 +256,41 @@ public class CylController : MonoBehaviour
 		if (Input.GetKey("i")) {
 			r_cyl_w.doJump();
 		}
-	}
+			
+		
+        if (Input.GetButtonDown("Fire8"))	print("Button 9");
+        if (Input.GetButtonDown("Fire9"))	//print("Button 10");
+            Application.LoadLevel(0);
+        //}
+		//if (Input.GetButtonDown("Fire10"))	print("Button 11");
+		//if (Input.GetButtonDown("Fire11"))	print("Button 12");
+        //else if (cylinder.controlScheme == CylController.ControlScheme.XBoxController)
+		
+			
+    }
 	
 	private void calculateAxis(){
-		/*float leftWheelXValue = 0, leftWheelYValue = 0, 
-			rightWheelXValue = 0, rightWheelYValue = 0;*/
+			leftWheelXValue = 0;
+			leftWheelYValue = 0; 
+			rightWheelXValue = 0;
+			rightWheelYValue = 0;
 		
 		// Different input systems related to the devices
 		switch (controlScheme){
 		case ControlScheme.Keyboard:
-			if (Input.GetKey("q"))
+			if (alreadyTurbo) {
 				leftWheelYValue += 1;
-			if (Input.GetKey("a"))
-				leftWheelYValue -= 1;
-			if (Input.GetKey("e"))
 				rightWheelYValue += 1;
-			if (Input.GetKey("d"))
+			} else {
+				if (Input.GetKey("q"))
+				leftWheelYValue += 1;
+				if (Input.GetKey("a"))
+				leftWheelYValue -= 1;
+				if (Input.GetKey("e"))
+				rightWheelYValue += 1;
+				if (Input.GetKey("d"))
 				rightWheelYValue -= 1;
+			}
 			break;
 		case ControlScheme.RumblePad:
 			leftWheelXValue	= Input.GetAxis("Horizontal");
@@ -251,6 +313,7 @@ public class CylController : MonoBehaviour
 				rightWheelYValue = leftWheelYValue;
 			}	
 		}
+			
 		
 		// Assign to the wheels the right velocity
 		l_cyl_w.throttleValue = leftWheelYValue * throttleForce;
