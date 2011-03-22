@@ -32,6 +32,7 @@ public class CylController : MonoBehaviour
 	
 	// Movement variables
 	public float accelerationDrag = 0, brakeDrag = 10, throttleForce = 10, wheelMass = 4, downwardForceFactor = 2.0f;
+	public float magnetModeThrottle = 800, magnetModeDrag;
 	private Transform t;
 	private Rigidbody rb;
 	private CylinderWheel l_cyl_w, r_cyl_w;
@@ -57,6 +58,11 @@ public class CylController : MonoBehaviour
 	public string ground_tag = "Ground";
 	public Vector3 cylinderOrientation;
 	public float animationSpeed = .1f;
+	
+	public float magnetismRadius = 3.0f;
+	public float magnetismForce = 700;
+	public Material standardMaterial, magnetMaterial;
+	
 	
 	//Axis input
 	float leftWheelXValue = 0, leftWheelYValue = 0, rightWheelXValue = 0, rightWheelYValue = 0;
@@ -231,7 +237,13 @@ public class CylController : MonoBehaviour
 		}
 		
 		
-		rb.useGravity = cylinderMode != CylinderMode.Magnetic;	
+		if (leftWheel.useGravity || rightWheel.useGravity){
+			rb.useGravity = true;	
+		}	
+		else{
+			rb.useGravity = false;
+		}
+		
 		
 		switch (controlScheme) {
 		case ControlScheme.Keyboard:
@@ -357,8 +369,14 @@ public class CylController : MonoBehaviour
 		
 		
 		// Assign to the wheels the right velocity
-		l_cyl_w.throttleValue = leftWheelYValue * throttleForce;
-		r_cyl_w.throttleValue = rightWheelYValue * throttleForce;
+		if (cylinderMode == CylinderMode.Magnetic){
+			l_cyl_w.throttleValue = leftWheelYValue * magnetModeThrottle;
+			r_cyl_w.throttleValue = rightWheelYValue * magnetModeThrottle;
+		}
+		else if (cylinderMode == CylinderMode.Normal){
+			l_cyl_w.throttleValue = leftWheelYValue * throttleForce;
+			r_cyl_w.throttleValue = rightWheelYValue * throttleForce;
+		}
 	}
 	
 	// Find the right orientation for the camera direction
