@@ -225,35 +225,53 @@ public class CylController : MonoBehaviour
 		// Calculate the axis values
 		calculateAxis();
 		
-		//RumblePad
-        if (Input.GetButtonDown("Fire1"))	print("Button 1");
-        if (Input.GetButtonDown("Fire2"))	print("Button 2");
-        if (Input.GetButtonDown("Fire3"))	print("Button 3");
-        if (Input.GetButtonDown("Jump"))	print("Button 4");
-        if (Input.GetButtonDown("Fire4"))	//print("Button 5");
-			l_cyl_w.doJump();
-        if (Input.GetButtonDown("Fire5"))	//print("Button 6");
-			r_cyl_w.doJump();
-        if (Input.GetButtonDown("Fire6"))	print("Button 7");
-        if (Input.GetButtonDown("Fire7")) {//print("Button 8");
-			l_cyl_w.doJump();
-			r_cyl_w.doJump();
-		}
-        if (Input.GetButtonDown("Fire8"))	print("Button 9");
-        if (Input.GetButtonDown("Fire9"))	//print("Button 10");
-            Application.LoadLevel(0);
-		if (Input.GetButtonDown("Fire10"))	print("Button 11");
-		if (Input.GetButtonDown("Fire11"))	print("Button 12");
-		//Keyboard
-		if (Input.GetKey("j")) {
-			l_cyl_w.doJump();
-			r_cyl_w.doJump();
-		}
-		if (Input.GetKey("u")) {
-			l_cyl_w.doJump();
-		}
-		if (Input.GetKey("i")) {
-			r_cyl_w.doJump();
+		switch (controlScheme) {
+			case ControlScheme.Keyboard:
+				if (Input.GetKey("j")) {
+					l_cyl_w.doJump();
+					r_cyl_w.doJump();
+				}
+				if (Input.GetKey("u")) {
+					l_cyl_w.doJump();
+				}
+				if (Input.GetKey("i")) {
+					r_cyl_w.doJump();
+				}
+				break;
+			case ControlScheme.RumblePad:
+				if (Input.GetButtonDown("Fire1"))	print("Button 1");
+				if (Input.GetButtonDown("Fire2"))	print("Button 2");
+				if (Input.GetButtonDown("Fire3"))	print("Button 3");
+				if (Input.GetButtonDown("Jump"))	print("Button 4");
+				if (Input.GetButtonDown("Fire4"))	//print("Button 5");
+					l_cyl_w.doJump();
+				if (Input.GetButtonDown("Fire5"))	//print("Button 6");
+					r_cyl_w.doJump();
+				if (Input.GetButtonDown("Fire6"))	print("Button 7");
+				if (Input.GetButtonDown("Fire7")) {//print("Button 8");
+					l_cyl_w.doJump();
+					r_cyl_w.doJump();
+				}
+				if (Input.GetButtonDown("Fire8"))	print("Button 9");
+				if (Input.GetButtonDown("Fire9"))	//print("Button 10");
+					Application.LoadLevel(0);
+				if (Input.GetButtonDown("Fire10"))	print("Button 11");
+				if (Input.GetButtonDown("Fire11"))	print("Button 12");
+				break;
+			case ControlScheme.XBoxController:
+				if (Input.GetButtonDown("Fire1"))	print("Button 1");
+				if (Input.GetButtonDown("Fire2"))	print("Button 2");
+				if (Input.GetButtonDown("Fire3"))	print("Button 3");
+				if (Input.GetButtonDown("Jump"))	print("Button 4");
+				if (Input.GetButtonDown("Fire4"))	print("Button 5");
+				if (Input.GetButtonDown("Fire5"))	print("Button 6");
+				if (Input.GetButtonDown("Fire6"))	print("Button 7");
+				if (Input.GetButtonDown("Fire7"))	print("Button 8");
+				if (Input.GetButtonDown("Fire8"))	print("Button 9");
+				if (Input.GetButtonDown("Fire9"))	print("Button 10");
+				if (Input.GetButtonDown("Fire10"))	print("Button 11");
+				if (Input.GetButtonDown("Fire11"))	print("Button 12");				
+				break;
 		}
     }
 	
