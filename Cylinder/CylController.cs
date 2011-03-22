@@ -230,16 +230,15 @@ public class CylController : MonoBehaviour
         if (Input.GetButtonDown("Fire2"))	print("Button 2");
         if (Input.GetButtonDown("Fire3"))	print("Button 3");
         if (Input.GetButtonDown("Jump"))	print("Button 4");
-        if (Input.GetButtonDown("Fire4"))	print("Button 5");
-			//l_cyl_w.doJump();
-        if (Input.GetButtonDown("Fire5"))	print("Button 6");
-			//r_cyl_w.doJump();
+        if (Input.GetButtonDown("Fire4"))	//print("Button 5");
+			l_cyl_w.doJump();
+        if (Input.GetButtonDown("Fire5"))	//print("Button 6");
+			r_cyl_w.doJump();
         if (Input.GetButtonDown("Fire6"))	print("Button 7");
-        if (Input.GetButtonDown("Fire7")) {print("Button 8");
-			//transform.Find("LeftWheel").GetComponent<CylinderWheel>().doJump();
-			//transform.Find("RightWheel").GetComponent<CylinderWheel>().doJump();
+        if (Input.GetButtonDown("Fire7")) {//print("Button 8");
+			l_cyl_w.doJump();
+			r_cyl_w.doJump();
 		}
-			//rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         if (Input.GetButtonDown("Fire8"))	print("Button 9");
         if (Input.GetButtonDown("Fire9"))	//print("Button 10");
             Application.LoadLevel(0);
@@ -256,17 +255,6 @@ public class CylController : MonoBehaviour
 		if (Input.GetKey("i")) {
 			r_cyl_w.doJump();
 		}
-			
-		
-        if (Input.GetButtonDown("Fire8"))	print("Button 9");
-        if (Input.GetButtonDown("Fire9"))	//print("Button 10");
-            Application.LoadLevel(0);
-        //}
-		//if (Input.GetButtonDown("Fire10"))	print("Button 11");
-		//if (Input.GetButtonDown("Fire11"))	print("Button 12");
-        //else if (cylinder.controlScheme == CylController.ControlScheme.XBoxController)
-		
-			
     }
 	
 	private void calculateAxis(){
