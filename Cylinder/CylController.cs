@@ -238,12 +238,15 @@ public class CylController : MonoBehaviour
 			if (Input.GetKey("j")) {
 				l_cyl_w.doJump();
 				r_cyl_w.doJump();
+				cylinderMode = CylController.CylinderMode.Normal;
 			}
 			if (Input.GetKey("u")) {
 				l_cyl_w.doJump();
+				cylinderMode = CylController.CylinderMode.Normal;
 			}
 			if (Input.GetKey("i")) {
 				r_cyl_w.doJump();
+				cylinderMode = CylController.CylinderMode.Normal;
 			}
 			if (Input.GetKey("m")){
 				cylinderMode = CylController.CylinderMode.Magnetic;
