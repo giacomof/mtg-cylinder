@@ -269,25 +269,41 @@ public class CylController : MonoBehaviour
 				l_cyl_w.doJump();
 				r_cyl_w.doJump();
 			}
-			if (Input.GetButton("Fire8"))	print("Button 9");
+			if (Input.GetButton("Fire8"))	//print("Button 9");
+				if (cylinderMode == CylController.CylinderMode.Normal)
+					cylinderMode = CylController.CylinderMode.Magnetic;
+				else
+					cylinderMode = CylController.CylinderMode.Normal;
 			if (Input.GetButton("Fire9"))	//print("Button 10");
 				Application.LoadLevel(0);
 			if (Input.GetButton("Fire10"))	print("Button 11");
 			if (Input.GetButton("Fire11"))	print("Button 12");
 			break;
 		case ControlScheme.XBoxController:
-			if (Input.GetButton("Fire1"))	print("Button 1");
-			if (Input.GetButton("Fire2"))	print("Button 2");
-			if (Input.GetButton("Fire3"))	print("Button 3");
-			if (Input.GetButton("Jump"))	print("Button 4");
-			if (Input.GetButton("Fire4"))	print("Button 5");
-			if (Input.GetButton("Fire5"))	print("Button 6");
+			if (Input.GetButton("Fire1"))	print("Button A");
+			if (Input.GetButton("Fire2"))	print("Button B");
+			if (Input.GetButton("Fire3"))	print("Button X");
+			if (Input.GetButton("Jump"))	print("Button Y");
+			if (Input.GetButton("Fire4"))	//print("Button 5");
+				
+			if (Input.GetButton("Fire5"))	//print("Button 6");
+				
 			if (Input.GetButton("Fire6"))	print("Button 7");
 			if (Input.GetButton("Fire7"))	print("Button 8");
-			if (Input.GetButton("Fire8"))	print("Button 9");
+			if (Input.GetButton("Fire8"))	//print("Button 9");
+				Application.LoadLevel(0);
 			if (Input.GetButton("Fire9"))	print("Button 10");
-			if (Input.GetButton("Fire10"))	print("Button 11");
-			if (Input.GetButton("Fire11"))	print("Button 12");				
+			//XBoxController has axis instead of buttons for the lower controls
+			if (Input.GetAxis("HorizontalRight") > 0) {
+				l_cyl_w.doJump();
+				r_cyl_w.doJump();
+			}
+			if (Input.GetAxis("HorizontalRight") < 0) {
+				if (cylinderMode == CylController.CylinderMode.Normal)
+					cylinderMode = CylController.CylinderMode.Magnetic;
+				else
+					cylinderMode = CylController.CylinderMode.Normal;				
+			}
 			break;
 		}
 	}
@@ -322,7 +338,9 @@ public class CylController : MonoBehaviour
 			rightWheelYValue	= Input.GetAxis("VerticalRight");
 			break;
 		case ControlScheme.XBoxController:
+			leftWheelXValue	= Input.GetAxis("Horizontal");
 			leftWheelYValue 	= Input.GetAxis("Vertical");
+			rightWheelXValue = Input.GetAxis("HorizontalRightXBox");
 			rightWheelYValue = Input.GetAxis("VerticalRightXBox");
 			break;
 		}
