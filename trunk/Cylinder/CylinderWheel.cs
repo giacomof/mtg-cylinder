@@ -19,7 +19,7 @@ public class CylinderWheel : MonoBehaviour
 	private bool haveToJump = false;
 	//Air steering
 	private bool airSteering = false;
-	private float airPower = 4f;	//Should probably be in the range of 1-2
+	private float airPower = 2f;	//Should probably be in the range of 1-2
 	private int airDirection = 0;
 	
 	
