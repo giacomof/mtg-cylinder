@@ -125,6 +125,11 @@ public class CylinderWheel : MonoBehaviour
 				}
 			}
 			
+			//Gravity hack:
+			if (rb.useGravity){
+				rb.AddForce(Vector3.down * rb.mass * 50);
+			}
+			
             //Air steering:
 			if (airSteering) {
 				rb.AddForce(airDirection * orientation_right * airPower, ForceMode.Impulse);
