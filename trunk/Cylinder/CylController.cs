@@ -26,6 +26,9 @@ public class CylController : MonoBehaviour
 	private bool speedKeyPressed = false;
 	private bool speedChanged = false;
 	
+	private bool jumpButtonPressed = false;
+	private bool cylinderModeChanged = false;
+	
 	// Wheels variables
 	public Rigidbody leftWheel, rightWheel;
 	private Transform lw_t, rw_t;
@@ -155,7 +158,7 @@ public class CylController : MonoBehaviour
 		if(speedChanged) {
 			switch(stepSpeed) {
 			case 0:
-				throttleForce = 2000;
+				//throttleForce = 1400;
 				break;
 			case 1:
 				throttleForce = 3000;
@@ -288,36 +291,58 @@ public class CylController : MonoBehaviour
 					cylinderMode = CylController.CylinderMode.Normal;
 			if (Input.GetButton("Fire9"))	//print("Button 10");
 				Application.LoadLevel(0);
-			if (Input.GetButton("Fire10"))	print("Button 11");
-			if (Input.GetButton("Fire11"))	print("Button 12");
+			if (Input.GetButton("Fire10"))	Debug.Log("Button 11");
+			if (Input.GetButton("Fire11"))	Debug.Log("Button 12");
 			break;
 		case ControlScheme.XBoxController:
-			if (Input.GetButton("Fire1"))	print("Button A");
-			if (Input.GetButton("Fire2"))	print("Button B");
-			if (Input.GetButton("Fire3"))	print("Button X");
-			if (Input.GetButton("Jump"))	print("Button Y");
-			if (Input.GetButton("Fire4"))	//print("Button 5");
+			if (Input.GetButton("Fire1"))	Debug.Log("Button A");
+			if (Input.GetButton("Fire2"))	Debug.Log("Button B");
+			if (Input.GetButton("Fire3"))	Debug.Log("Button X");
+			if (Input.GetButton("Jump"))	Debug.Log("Button Y");
+			if (Input.GetButton("Fire4")){
+				//Climb
+				Debug.Log("climb! (hopefully)");
+				if (!cylinderModeChanged){
+					cylinderModeChanged = true;
+					if (cylinderMode == CylController.CylinderMode.Normal)
+						cylinderMode = CylController.CylinderMode.Magnetic;
+					else
+						cylinderMode = CylController.CylinderMode.Normal;	
+				}
+			}
+			else{
+				cylinderModeChanged = false;
+			}
 				
-			if (Input.GetButton("Fire5"))	//print("Button 6");
+			if (Input.GetButton("Fire5")){
+				Debug.Log("jump! (hopefully)");
+				//Jump
+				if (!jumpButtonPressed){
+					cylinderMode = CylController.CylinderMode.Normal;
+					jumpButtonPressed = true;
+					l_cyl_w.doJump();
+					r_cyl_w.doJump();
+				}
+			}
+			else{
+				jumpButtonPressed = false;
+			}				
 				
-			if (Input.GetButton("Fire6"))	print("Button 7");
-			if (Input.GetButton("Fire7"))	print("Button 8");
-			if (Input.GetButton("Fire8"))	//print("Button 9");
-				Application.LoadLevel(0);
-			if (Input.GetButton("Fire9"))	print("Button 10");
+			if (Input.GetButton("Fire6"))	Debug.Log("Button 7");
+			if (Input.GetButton("Fire7"))	{Debug.Log("Button 8");
+			Application.LoadLevel(0);}
+			if (Input.GetButton("Fire8"));	//print("Button 9");
+			if (Input.GetButton("Fire9"))	Debug.Log("Button 10");
+			if (Input.GetButton("Fire10"))	Debug.Log("Button 11");
+			if (Input.GetButton("Fire11"))	Debug.Log("Button 12");
+						if (Input.GetButton("Fire12"))	Debug.Log("Button 13");
 			//XBoxController has axis instead of buttons for the lower controls
-			if (Input.GetAxis("HorizontalRight") > 0) {
-				l_cyl_w.doJump();
-				r_cyl_w.doJump();
-			}
-			if (Input.GetAxis("HorizontalRight") < 0) {
-				if (cylinderMode == CylController.CylinderMode.Normal)
-					cylinderMode = CylController.CylinderMode.Magnetic;
-				else
-					cylinderMode = CylController.CylinderMode.Normal;				
-			}
 			break;
 		}
+		if (Input.GetKeyDown(KeyCode.Escape)) {    
+			Debug.Log("escape");
+			Application.Quit();    
+			}
 	}
 	
 	private void calculateAxis(){
@@ -364,7 +389,15 @@ public class CylController : MonoBehaviour
 			if (difference < minAnalogStickDifference){
 				leftWheelYValue = Mathf.Max(leftWheelYValue, rightWheelYValue);
 				rightWheelYValue = leftWheelYValue;
-			}	
+			}
+			else{
+				if (rightWheelYValue > leftWheelYValue){
+					rightWheelYValue = rightWheelYValue - minAnalogStickDifference;
+				}
+				else{
+					leftWheelYValue = leftWheelYValue - minAnalogStickDifference;
+				}
+			}				
 		}
 		
 		
