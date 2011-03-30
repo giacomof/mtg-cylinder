@@ -8,95 +8,109 @@ public class CylinderWheel : MonoBehaviour
 	public Transform wheelModel;
 	public Vector3 forward_orientation, downward_orientation, orientation_right;
 	
-	public float throttleValue;
-	
-    bool _onGround = false, _onMagnet = false;
+    private bool _onGround = false, _gravityAffects = false, _isJumping = false;
     private Rigidbody rb;
 	private Vector3 addedVelo, collisionNormal = Vector3.up;
 	
-	// Force applyed to the wheel when jumping
-	public float jumpForce = 100.0f;
-	private bool haveToJump = false;
-	//Air steering
-	private bool airSteering = false;
-	private bool justAttached = false;
-	private float airPower = 2f;	//Should probably be in the range of 1-2
-	private int airDirection = 0;
-	
 	private int layerMask;
 	private MeshRenderer mRend;
-	private ContactPoint[] contactPoints;
-    void Start()
+	private RaycastHit closestHit = new RaycastHit();
+	
+	private float currentThrottle = 0;
+	private float targetVelocity = 0, diff;
+	
+	void Start()
     {
         rb = this.rigidbody;
 		mRend = (MeshRenderer)wheelModel.GetComponent(typeof(MeshRenderer));
-		
+		// Create the layermask for detecting magnetic surfaces
 		layerMask = 1 << 9;
     }
 
     void Update()
-    {
-		//animate the wheels:
-		wheelModel.RotateAroundLocal(Vector3.up, throttleValue * Time.deltaTime * cylinder.animationSpeed);
-    }
+    {	
+		animateWheel();
+		splitVelocity();
+		
+		if (!_gravityAffects && !_isJumping){
+			// On ground:
+			
+			//throttle:
+			diff = targetVelocity - currentThrottle;
+			if (diff > 0){
+				
+				if (targetVelocity * currentThrottle <= 0){
+					//decceleration
+					currentThrottle = CylController.ceil(currentThrottle + (cylinder.decceleration * Time.deltaTime), targetVelocity);
+				}
+				else {
+					//acceleration
+					currentThrottle = CylController.ceil(currentThrottle + (cylinder.acceleration * Time.deltaTime), targetVelocity);	
+				}
+				
+			}
+			else if (diff < 0){
+				
+				if (targetVelocity * currentThrottle <= 0){
+					//decceleration
+					currentThrottle = CylController.floor(currentThrottle - (cylinder.decceleration * Time.deltaTime), targetVelocity);
+				}
+				else {
+					//acceleration
+					currentThrottle = CylController.floor(currentThrottle - (cylinder.acceleration * Time.deltaTime), targetVelocity);	
+				}
+				
+			}
+			//assign velocity:
+			rb.velocity = (currentThrottle * forward_orientation);
+			
+		}
+	}
 	
-	private RaycastHit hit = new RaycastHit();
+	
+	private void splitVelocity(){
+		currentThrottle = Vector3.Dot(rb.velocity, forward_orientation);
+		
+		//limit the throttle by max value:
+		if (currentThrottle > cylinder.maxThrottlePower){
+			currentThrottle = cylinder.maxThrottlePower;
+		}
+	}
+	
+	private void animateWheel(){
+		//animate the wheels:
+		wheelModel.RotateAroundLocal(Vector3.up, targetVelocity * Time.deltaTime * cylinder.animationSpeed);
+	}
+	
+	
 	
     void FixedUpdate() {
         computeOrientation();
-		
-		
-		if (cylinder.cylinderMode == CylController.CylinderMode.Magnetic){
-			mRend.material = cylinder.magnetMaterial;
-			rb.drag = cylinder.magnetModeDrag;
-			if (_onMagnet){
-				if (collisionNormal.y < .3f){
-					rb.useGravity = false;
-				}
-				else{
-					rb.useGravity = true;	
-				}	
+		applyExternalForces();
+    }
+	
+	private void computeOrientation()
+	{
+        //Calculate orientation vectors:
+        forward_orientation = Vector3.Cross(cylinder.cylinderOrientation, collisionNormal).normalized;
+        downward_orientation = -collisionNormal;
+		orientation_right = Vector3.Cross(forward_orientation, downward_orientation).normalized;
+    }
+	
+	private void applyExternalForces()
+	{
+		//Gravity and magnetism:
+		switch (cylinder.cylinderMode){
+		case CylController.CylinderMode.Normal:
+			if (collisionNormal.y < .3f || !_onGround){
+				applyGravity();
+				_gravityAffects = true;
 			}
-			else{
-				rb.useGravity = true;	
-			}
-		}
-		else{
-			mRend.material = cylinder.standardMaterial;	
-			rb.useGravity = true;
-		}
-		
-        if (_onGround) {
-			// On ground:
-			
-			//Jump behaviour:
-			if (haveToJump) {
-				rb.AddForce(collisionNormal * jumpForce, ForceMode.Impulse);
-				haveToJump = false;
-			}
-			
-			
-			
-			
-			//Normal behaviour:
-			if (throttleValue == 0) {
-				// No throttle applied:
-				rb.drag = cylinder.brakeDrag;
-			}
-			else {
-				rb.drag = cylinder.accelerationDrag;
-				addedVelo = forward_orientation * throttleValue;
-				rb.AddForce(addedVelo);
-				
-			}	
-        }
-		else {
-			// In air:
-			rb.drag = cylinder.accelerationDrag;
-			//Magnetic behaviour:
-			if (cylinder.cylinderMode == CylController.CylinderMode.Magnetic){
+			else _gravityAffects = false;
+			break;
+		case CylController.CylinderMode.Magnetic:
+			if (!_onGround){
 				float distance = cylinder.magnetismRadius + 1;
-				RaycastHit closestHit = hit;
 				for (int i = 0; i < 8; i++){
 					RaycastHit[] hits = Physics.RaycastAll(rb.position, getRaycastDir(i), cylinder.magnetismRadius, layerMask);
 					for (int h = 0; h < hits.Length; h++){
@@ -106,37 +120,25 @@ public class CylinderWheel : MonoBehaviour
 						}
 					}
 				}
-				
-				for (int i = 0; i < contactPoints.Length; i++){
-					RaycastHit[] hits = Physics.RaycastAll(rb.position, contactPoints[i].point - rb.position, cylinder.magnetismRadius, layerMask);
-					for (int h = 0; h < hits.Length; h++){
-						if (distance > hits[h].distance){
-							closestHit = hits[h];
-							distance = closestHit.distance;
-						}
-					}
-				}
-				
-				if (closestHit.normal.magnitude == 0){
-					
-				}
-				else{
+				if (closestHit.normal.magnitude > 0){
 					rb.AddForce((-closestHit.normal * cylinder.magnetismForce) + (-closestHit.normal * cylinder.getRigidbody().velocity.magnitude));
 				}
+				else{
+					applyGravity();
+				}
+				_gravityAffects = true;
 			}
-			
-			//Gravity hack:
-			if (rb.useGravity){
-				rb.AddForce(Vector3.down * rb.mass * 50);
-			}
-			
-            //Air steering:
-			if (airSteering) {
-				rb.AddForce(airDirection * orientation_right * airPower, ForceMode.Impulse);
-				airSteering = false;
-			}
-        }
-    }
+			else _gravityAffects = false;
+			break;
+		}
+	}
+	
+	private void applyGravity(){
+		//Apply the custom gravity:
+		rb.AddForce(Vector3.down * cylinder.gravityPower);
+		cylinder.getRigidbody().AddForce(Vector3.down * cylinder.gravityPower * .5f);
+		_isJumping = false;
+	}
 	
 	private Vector3 getRaycastDir(int index){
 		switch(index){
@@ -160,33 +162,22 @@ public class CylinderWheel : MonoBehaviour
 	}
 	
 	public void doJump() {
-		haveToJump = true;
+		if (_onGround){
+			_isJumping = true;
+			rb.AddForce(collisionNormal * cylinder.jumpPower, ForceMode.Impulse);
+		}
 	}
 	
-	public void doSteer(bool goingLeft) {
-		airSteering = true;
-		if (goingLeft)
-			airDirection = -1;
-		else
-			airDirection = 1;
+	public void throttleTo(float velocity){
+		targetVelocity = velocity;
 	}
 
-    void computeOrientation()
-	{
-        //Calculate orientation vectors:
-        forward_orientation = Vector3.Cross(cylinder.cylinderOrientation, collisionNormal).normalized;
-        downward_orientation = -collisionNormal;
-		orientation_right = Vector3.Cross(forward_orientation, downward_orientation);
-    }
+    
 	
     void OnCollisionStay(Collision collision)
     {
         if (collision.gameObject.tag == cylinder.ground_tag)
         {
-			//We have touched magnet:
-			if (collision.gameObject.layer == 9){
-				_onMagnet = true;
-			}
             //We have touched ground:
             _onGround = true;
 			
@@ -200,10 +191,6 @@ public class CylinderWheel : MonoBehaviour
     {
         if (collision.gameObject.tag == cylinder.ground_tag)
         {
-			if (collision.gameObject.layer == 9){
-				contactPoints = collision.contacts;
-				_onMagnet = false;
-			}
             //We have left the ground:
             _onGround = false;
         }
@@ -211,5 +198,9 @@ public class CylinderWheel : MonoBehaviour
 	
 	public bool OnGround() {
 		return _onGround;
+	}
+	
+	public void setMaterial(Material mat){
+		mRend.material = mat;	
 	}
 }
