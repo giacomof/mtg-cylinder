@@ -5,7 +5,7 @@ using System.Collections;
 public class CameraController : MonoBehaviour {
 	
 	public enum CameraFollowMode{
-		StandardFollow, Override	
+		StandardFollow, Override, FixedSpeed	
 	}
 	
 	public CylController cylinder;
@@ -19,7 +19,7 @@ public class CameraController : MonoBehaviour {
 	private Vector3 cameraTarget, overrideTarget, forwardOrientation;
 	private Camera c;
 	
-	private float targetFOV;
+	private float targetFOV, fixSpeed;
 	
 	// Use this for initialization
 	void Start () {
@@ -31,8 +31,16 @@ public class CameraController : MonoBehaviour {
 	}
 	
 	void Update () {
+		float speed;
+		if (followMode == CameraController.CameraFollowMode.FixedSpeed){
+			speed = fixSpeed;
+		}
+		else{
+			speed = (cameraTarget - t.position).magnitude;
+		}
+		
 		// Update the camera movement
-        t.position = Vector3.MoveTowards(t.position, cameraTarget, Time.deltaTime * Mathf.Max(cylinderRigidbody.velocity.magnitude, cameraMiniumVelocity));
+        t.position = Vector3.MoveTowards(t.position, cameraTarget, Time.deltaTime * speed * 3.5f);
         t.LookAt(cylinderTransform);
 		
 		// Update the field of vision:
@@ -48,25 +56,38 @@ public class CameraController : MonoBehaviour {
 	
 	void FixedUpdate() {
 		switch(followMode){
-		case CameraFollowMode.StandardFollow:
-			forwardOrientation = Vector3.Cross(cylinder.cylinderOrientation, Vector3.up).normalized;
-			cameraTarget = cylinderTransform.position - (cameraDistanceBackward * forwardOrientation) + (cameraDistanceUpward * Vector3.up);
-			break;
 		case CameraFollowMode.Override:
 			cameraTarget = overrideTarget;
+			break;
+		default:
+			forwardOrientation = Vector3.Cross(cylinder.cylinderOrientation, Vector3.up).normalized;
+			cameraTarget = cylinderTransform.position - (cameraDistanceBackward * forwardOrientation) + (cameraDistanceUpward * Vector3.up);
 			break;
 		}
 	}
 	
 	public void Override(Vector3 position){
-		followMode = CameraFollowMode.Override;
-		overrideTarget = position;
+		if (followMode != CameraFollowMode.Override){
+			followMode = CameraFollowMode.Override;
+			overrideTarget = position;
+		}
 	}
 	
+	public void Revert(){
+		followMode = CameraFollowMode.StandardFollow;	
+	}
 	
+	public Vector3 getCurrentTarget(){
+		return cameraTarget;	
+	}
 	
 	public void setFOV(float fov){
 		targetFOV = fov;
+	}
+	
+	public void setSpeed(float speed){
+		fixSpeed = speed;
+		followMode = CameraController.CameraFollowMode.FixedSpeed;
 	}
 	
 	//For handling camera issues:
