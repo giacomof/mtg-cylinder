@@ -26,7 +26,8 @@ public class Enemy : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {	
+	//void Update () {	
+	void FixedUpdate () {
 		//Death check
 		if (isDead)
 			Destroy(gameObject);
@@ -35,7 +36,7 @@ public class Enemy : MonoBehaviour {
 			//Get in right position
 			//Orientate();
 			//Rotate
-			//Rotate();
+			Rotate();
 			//Proximity check
 			if (WithinDistance(player)) {
 				//Movement
@@ -89,6 +90,14 @@ public class Enemy : MonoBehaviour {
 		float moveSpeed = enemySpeed * Time.deltaTime;
 		
 		transform.position = transform.position + (delta * moveSpeed);
+	}
+	
+	void Rotate() {
+		Vector3 target;
+
+		target = player.position;
+		target.y = transform.position.y;
+		transform.LookAt(target);
 	}
 	
 	bool WithinDistance(Transform target) {
