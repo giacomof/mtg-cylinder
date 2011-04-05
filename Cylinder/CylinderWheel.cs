@@ -105,6 +105,7 @@ public class CylinderWheel : MonoBehaviour
 			if (collisionNormal.y < .3f || !_onGround){
 				applyGravity();
 				_gravityAffects = true;
+				//TODO: apply air steering
 			}
 			else _gravityAffects = false;
 			break;

@@ -5,10 +5,15 @@ public class InGame : MonoBehaviour {
 	public Rigidbody cylinder, LeftWheel, RightWheel;
 	//public ControlScheme controlScheme;
 	float maxCylinder = 0;
+	
+	//Test
+	float displayMinutes, displaySeconds, restSeconds, startTime, timeLeft;
+	int countDownSeconds = 300, roundedRestSeconds;
+	string timetext;
 
 	// Use this for initialization
 	void Start () {
-	
+		startTime = Time.deltaTime;
 	}
 	
 	// Update is called once per frame
@@ -19,10 +24,22 @@ public class InGame : MonoBehaviour {
 	void OnGUI () {
 		GUIStyle guiStyle = new GUIStyle();
 		//guiStyle.alignment = UpperRight;
-		GUI.Box(new Rect(0, 0, 200, 100), "Current velocity / Max"+
-			"\n\tCylinder: "+ CalculateVelocity(cylinder) + "\t / " 	+ Mathf.RoundToInt(maxCylinder)+
-			"\n\tLeft: "		+ CalculateVelocity(LeftWheel) + 
-			"\n\tRight: "	+ CalculateVelocity(RightWheel));
+		
+		//Setting count down
+		timeLeft = Time.time - startTime;
+		restSeconds = countDownSeconds - (timeLeft);
+		
+		roundedRestSeconds = Mathf.CeilToInt(restSeconds);
+		displaySeconds = roundedRestSeconds % 60;
+		displayMinutes = (roundedRestSeconds / 60) %60;
+		
+		timetext = (displayMinutes.ToString() + ":");
+		if (displaySeconds > 9)
+			timetext = timetext + displaySeconds.ToString();
+		else
+			timetext = timetext + "0" + displaySeconds.ToString();
+		
+		GUI.Box(new Rect(0, 0, 100, 50), timetext);
 		GUI.Box(new Rect(Screen.width / 2 -50, 0, 100, 25), "CYLINDREAM");
 		GUI.Box(new Rect (Screen.width - 150,0,150,150), "Input"	+
 			"\nControl Scheme: " +
@@ -32,7 +49,10 @@ public class InGame : MonoBehaviour {
 			"\nHorizontal"	+ 
 			"\n\tLeft: "		+ Mathf.RoundToInt(Input.GetAxis("Horizontal") * 100) + " %" +
 			"\n\tRight: "	+ Mathf.RoundToInt(Input.GetAxis("HorizontalRight") * 100) + " %");		
-		GUI.Box(new Rect (0,Screen.height - 50,100,50), "Bottom-left", guiStyle);
+		GUI.Box(new Rect (0,Screen.height - 100, 200, 100), "Current velocity / Max"+
+			"\n\tCylinder: "+ CalculateVelocity(cylinder) + "\t / " 	+ Mathf.RoundToInt(maxCylinder)+
+			"\n\tLeft: "		+ CalculateVelocity(LeftWheel) + 
+			"\n\tRight: "	+ CalculateVelocity(RightWheel), guiStyle);
 		GUI.Box(new Rect (Screen.width - 100,Screen.height - 50,100,50), "Bottom-right", guiStyle);
 	}
 	
