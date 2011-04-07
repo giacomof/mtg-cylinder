@@ -33,7 +33,7 @@ public class CylinderWheel : MonoBehaviour
 		animateWheel();
 		//splitVelocity();
 		
-		if (!_gravityAffects && !_isJumping){
+		if (_onGround && !_gravityAffects && !_isJumping){
 			// On ground:
 			
 			//throttle:
