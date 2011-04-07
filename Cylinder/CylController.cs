@@ -17,6 +17,7 @@ public class CylController : MonoBehaviour
 	private Transform t;
 	private Rigidbody rb;
 	private CylinderWheel l_cyl_w, r_cyl_w;
+	private Transform leftWheel_Field, rightWheel_Field;
 	
 	// Button booleans
 	private bool jumpButtonPressed = false;
@@ -27,18 +28,18 @@ public class CylController : MonoBehaviour
 	private Transform lw_t, rw_t;
 	
 	// Movement variables
-	public float throttlePower = 40, magnetThrottlePower = 20, maxThrottlePower = 120, jumpPower = 100;
+	public float throttlePower = 40, magnetThrottlePower = 20, maxThrottlePower = 120, turboThrottlePower = 80, jumpPower = 100;
 	public float gravityPower = 150;
 	public float acceleration = 55, decceleration = 80;
 	
 	// Turbo variables
-	public float turboDuration = 2.0f;
-	public float turboRechargeDuration = 1.0f;
+	public float turboDuration = 2000.0f;
+	public float turboRechargeDuration = 1000.0f;
 	public float originalFOV = 60.0f, turboFOV = 90.0f;
 	
-	private bool canTurbo = true;
 	private bool isTurbo = false;
-	private float turboTimer;
+	private float turboTimer = -1;
+	private float turboRechargeTimer = -1;
 	
 	// Control variables
 	public ControlScheme controlScheme;
@@ -71,6 +72,9 @@ public class CylController : MonoBehaviour
 		
 		l_cyl_w = (CylinderWheel)leftWheel.GetComponent(typeof(CylinderWheel));
 		r_cyl_w = (CylinderWheel)rightWheel.GetComponent(typeof(CylinderWheel));
+		
+		leftWheel_Field = transform.Find("LeftWheelField");
+		rightWheel_Field = transform.Find("RightWheelField");
 	}
 	
 	public Rigidbody getRigidbody(){
@@ -82,6 +86,17 @@ public class CylController : MonoBehaviour
 	}
 	
 	void Update() {
+		if(turboTimer > 0) {
+			turboTimer -= Time.deltaTime;
+			Debug.Log("Turbo: " + turboTimer);
+			if (turboTimer <= 0){
+				turboRechargeTimer = turboRechargeDuration;
+			}
+		}
+		else if (turboRechargeTimer > 0){
+			turboRechargeTimer -= Time.deltaTime;
+			Debug.Log("Recharge: " + turboRechargeTimer);
+		}
 		
 	}
 	
@@ -114,12 +129,9 @@ public class CylController : MonoBehaviour
 		rightWheelYValue = 0;
 		
 		// Different input systems related to the devices
-		switch (controlScheme){
-		case ControlScheme.Keyboard:
-			if (isTurbo) {
-				leftWheelYValue += 1;
-				rightWheelYValue += 1;
-			} else {
+		if(turboTimer <= 0) {
+			switch (controlScheme){
+			case ControlScheme.Keyboard:
 				if (Input.GetKey("q"))
 					leftWheelYValue += 1;
 				if (Input.GetKey("a"))
@@ -127,81 +139,83 @@ public class CylController : MonoBehaviour
 				if (Input.GetKey("e"))
 					rightWheelYValue += 1;
 				if (Input.GetKey("d"))
-					rightWheelYValue -= 1;
+					rightWheelYValue -= 1;			
+				//Buttons:
+				jump(Input.GetKey("j")); 
+				switchMagnetism(Input.GetKey("m"));
+				switchTurbo(Input.GetKey("t"));
+				
+				break;
+			case ControlScheme.RumblePad:
+				//Axis:
+				leftWheelXValue	= Input.GetAxis("Horizontal");
+				leftWheelYValue	= Input.GetAxis("Vertical");
+				rightWheelXValue	= Input.GetAxis("HorizontalRight");
+				rightWheelYValue	= Input.GetAxis("VerticalRight");
+				
+				//Buttons:
+				switchMagnetism(Input.GetButton("Fire4"));
+				jump(Input.GetButton("Fire5"));
+				switchTurbo(Input.GetButton("Fire6"));
+				if (Input.GetButton("Fire9"))
+					Application.LoadLevel(0);
+				break;
+			case ControlScheme.XBoxController:
+				//Axis:
+				leftWheelXValue	= Input.GetAxis("Horizontal");
+				leftWheelYValue 	= Input.GetAxis("Vertical");
+				rightWheelXValue = Input.GetAxis("HorizontalRightXBox");
+				rightWheelYValue = Input.GetAxis("VerticalRightXBox");
+				
+				//Buttons:
+				switchMagnetism(Input.GetButton("Fire4"));
+				jump(Input.GetButton("Fire5"));
+				switchTurbo(Input.GetButton("Fire6"));
+				if (Input.GetButton("Fire7"))
+					Application.LoadLevel(0);
+				break;
 			}
 			
-			//Buttons:
-			jump(Input.GetKey("j")); 
-			switchMagnetism(Input.GetKey("m"));
-			
-			break;
-		case ControlScheme.RumblePad:
-			//Axis:
-			leftWheelXValue	= Input.GetAxis("Horizontal");
-			leftWheelYValue	= Input.GetAxis("Vertical");
-			rightWheelXValue	= Input.GetAxis("HorizontalRight");
-			rightWheelYValue	= Input.GetAxis("VerticalRight");
-			
-			//Buttons:
-			switchMagnetism(Input.GetButton("Fire4"));
-			jump(Input.GetButton("Fire5"));	
-			if (Input.GetButton("Fire9"))
-				Application.LoadLevel(0);
-			break;
-		case ControlScheme.XBoxController:
-			//Axis:
-			leftWheelXValue	= Input.GetAxis("Horizontal");
-			leftWheelYValue 	= Input.GetAxis("Vertical");
-			rightWheelXValue = Input.GetAxis("HorizontalRightXBox");
-			rightWheelYValue = Input.GetAxis("VerticalRightXBox");
-			
-			//Buttons:
-			switchMagnetism(Input.GetButton("Fire4"));
-			jump(Input.GetButton("Fire5"));			
-			if (Input.GetButton("Fire7"))
-				Application.LoadLevel(0);
-			break;
-		}
-		
-		if (leftWheelYValue == 0 && rightWheelYValue == 0){
-			cameraController.Revert();
-		}
-		else if (leftWheelYValue * rightWheelYValue > 0){
-			//The analog sticks are facing the same direction, apply the thresholds:
-			float leftWheelAbs = Mathf.Abs(leftWheelYValue);
-			float rightWheelAbs = Mathf.Abs(rightWheelYValue);
-			if (leftWheelAbs > rightWheelAbs){
-				rightWheelYValue = applyThresholds(leftWheelAbs, rightWheelAbs, rightWheelYValue);
+			if (leftWheelYValue == 0 && rightWheelYValue == 0){
+				cameraController.Revert();
+			}
+			else if (leftWheelYValue * rightWheelYValue > 0){
+				//The analog sticks are facing the same direction, apply the thresholds:
+				float leftWheelAbs = Mathf.Abs(leftWheelYValue);
+				float rightWheelAbs = Mathf.Abs(rightWheelYValue);
+				if (leftWheelAbs > rightWheelAbs){
+					rightWheelYValue = applyThresholds(leftWheelAbs, rightWheelAbs, rightWheelYValue);
+				}
+				else {
+					leftWheelYValue = applyThresholds(rightWheelAbs, leftWheelAbs, leftWheelYValue);
+				}
+				
+				//Set the camera to keep following the cylinder:
+				cameraController.Revert();
 			}
 			else {
-				leftWheelYValue = applyThresholds(rightWheelAbs, leftWheelAbs, leftWheelYValue);
-			}
-			
-			//Set the camera to keep following the cylinder:
-			cameraController.Revert();
-		}
-		else {
-			
-				float limit;
 				
-				if (rightWheelYValue > 0){
-					limit = (rightWheelYValue - leftWheelYValue) * .4f;
-					rightWheelYValue = ceil(rightWheelYValue, limit);
-					leftWheelYValue = floor(leftWheelYValue, -limit);
-				}
-				else{
-					limit = (leftWheelYValue - rightWheelYValue) * .4f;
-					leftWheelYValue = ceil(leftWheelYValue, limit);
-					rightWheelYValue = floor(rightWheelYValue, -limit);
-				}
-			if (leftWheelYValue == 0 || rightWheelYValue == 0) cameraController.setSpeed(4);
-			else cameraController.Override(cameraController.getCurrentTarget());
-			
-			
-			//Let the camera rest:
-			
-		}
+					float limit;
+					
+					if (rightWheelYValue > 0){
+						limit = (rightWheelYValue - leftWheelYValue) * .4f;
+						rightWheelYValue = ceil(rightWheelYValue, limit);
+						leftWheelYValue = floor(leftWheelYValue, -limit);
+					}
+					else{
+						limit = (leftWheelYValue - rightWheelYValue) * .4f;
+						leftWheelYValue = ceil(leftWheelYValue, limit);
+						rightWheelYValue = floor(rightWheelYValue, -limit);
+					}
+				if (leftWheelYValue == 0 || rightWheelYValue == 0) cameraController.setSpeed(4);
+				else cameraController.Override(cameraController.getCurrentTarget());
+				
+				
+				//Let the camera rest:
+				
+			}
 		
+			
 		/*
 		//Debug:
 		Debug.Log("Left value: " + leftWheelYValue +
@@ -218,7 +232,10 @@ public class CylController : MonoBehaviour
 			l_cyl_w.throttleTo(leftWheelYValue * throttlePower);
 			r_cyl_w.throttleTo(rightWheelYValue * throttlePower);
 		}
-		
+	} else {
+		l_cyl_w.throttleTo(turboThrottlePower);
+		r_cyl_w.throttleTo(turboThrottlePower);
+	}
 		
 	}
 	
@@ -261,8 +278,8 @@ public class CylController : MonoBehaviour
 		if (keyDown){
 			if (!jumpButtonPressed){
 				cylinderMode = CylController.CylinderMode.Normal;
-				l_cyl_w.setMaterial(standardMaterial);
-				r_cyl_w.setMaterial(standardMaterial);
+				//l_cyl_w.setMaterial(standardMaterial);
+				//r_cyl_w.setMaterial(standardMaterial);
 				jumpButtonPressed = true;
 				l_cyl_w.doJump();
 				r_cyl_w.doJump();
@@ -279,13 +296,17 @@ public class CylController : MonoBehaviour
 				cylinderModeChanged = true;
 				if (cylinderMode == CylController.CylinderMode.Normal){
 					cylinderMode = CylController.CylinderMode.Magnetic;
-					l_cyl_w.setMaterial(magnetMaterial);
-					r_cyl_w.setMaterial(magnetMaterial);
+					leftWheel_Field.renderer.enabled = true;
+					rightWheel_Field.renderer.enabled = true;
+					//l_cyl_w.setMaterial(magnetMaterial);
+					//r_cyl_w.setMaterial(magnetMaterial);
 				}
 				else{
 					cylinderMode = CylController.CylinderMode.Normal;	
-					l_cyl_w.setMaterial(standardMaterial);
-					r_cyl_w.setMaterial(standardMaterial);
+					leftWheel_Field.renderer.enabled = false;
+					rightWheel_Field.renderer.enabled = false;
+					//l_cyl_w.setMaterial(standardMaterial);
+					//r_cyl_w.setMaterial(standardMaterial);
 				}
 			}
 		}
@@ -298,5 +319,13 @@ public class CylController : MonoBehaviour
 	private void computeOrientation()
 	{
 		this.cylinderOrientation = rw_t.position - lw_t.position;
+	}
+	
+	private void switchTurbo(bool keyDown) {
+		if(keyDown) {
+			if(turboRechargeDuration <= 0) {
+				turboTimer = turboDuration;
+			}
+		}
 	}
 }
