@@ -7,11 +7,13 @@ public class CylinderWheel : MonoBehaviour
     public CylController cylinder;
 	public Transform wheelModel;
 	public Vector3 forward_orientation, downward_orientation, orientation_right;
+	private Vector3[] forward_vectors;
 	
     private bool _onGround = false, _gravityAffects = false, _isJumping = false;
     private Rigidbody rb;
 	private Rigidbody relativeGround;
 	private Vector3 addedVelo, collisionNormal = Vector3.up;
+	private ContactPoint[] contactPoints;
 	
 	private int layerMask;
 	private MeshRenderer mRend;
@@ -22,6 +24,7 @@ public class CylinderWheel : MonoBehaviour
 	
 	void Start()
     {
+		forward_vectors = new Vector3[20];
         rb = this.rigidbody;
 		mRend = (MeshRenderer)wheelModel.GetComponent(typeof(MeshRenderer));
 		// Create the layermask for detecting magnetic surfaces
@@ -31,7 +34,7 @@ public class CylinderWheel : MonoBehaviour
     void Update()
     {	
 		animateWheel();
-		//splitVelocity();
+		splitVelocity();
 		
 		if (_onGround && !_gravityAffects && !_isJumping){
 			// On ground:
@@ -64,6 +67,7 @@ public class CylinderWheel : MonoBehaviour
 			}
 			//assign velocity:
 			rb.velocity = (currentThrottle * forward_orientation);
+			
 			if (relativeGround){
 				rb.velocity += relativeGround.velocity;
 				Debug.Log("Added force: " + relativeGround.velocity);
@@ -73,6 +77,10 @@ public class CylinderWheel : MonoBehaviour
 	
 	
 	private void splitVelocity(){
+		if (relativeGround){
+				rb.velocity -= relativeGround.velocity;
+				Debug.Log("Added force: " + relativeGround.velocity);
+			}
 		currentThrottle = Vector3.Dot(rb.velocity, forward_orientation);
 		//limit the throttle by max value:
 		if (currentThrottle > cylinder.maxThrottlePower){
@@ -95,6 +103,7 @@ public class CylinderWheel : MonoBehaviour
 	private void computeOrientation()
 	{
         //Calculate orientation vectors:
+		
         forward_orientation = Vector3.Cross(cylinder.cylinderOrientation, collisionNormal).normalized;
         downward_orientation = -collisionNormal;
 		orientation_right = Vector3.Cross(forward_orientation, downward_orientation).normalized;
@@ -186,7 +195,6 @@ public class CylinderWheel : MonoBehaviour
 			case "Ground":
 				//We have touched ground:
 				_onGround = true;
-				
 				//Get the collision normal (awesome feature!!!!!):
 				collisionNormal = collision.contacts[0].normal;
 				break;
