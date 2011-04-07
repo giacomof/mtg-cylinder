@@ -10,6 +10,7 @@ public class CylinderWheel : MonoBehaviour
 	
     private bool _onGround = false, _gravityAffects = false, _isJumping = false;
     private Rigidbody rb;
+	private Rigidbody relativeGround;
 	private Vector3 addedVelo, collisionNormal = Vector3.up;
 	
 	private int layerMask;
@@ -30,7 +31,7 @@ public class CylinderWheel : MonoBehaviour
     void Update()
     {	
 		animateWheel();
-		splitVelocity();
+		//splitVelocity();
 		
 		if (!_gravityAffects && !_isJumping){
 			// On ground:
@@ -63,14 +64,16 @@ public class CylinderWheel : MonoBehaviour
 			}
 			//assign velocity:
 			rb.velocity = (currentThrottle * forward_orientation);
-			
+			if (relativeGround){
+				rb.velocity += relativeGround.velocity;
+				Debug.Log("Added force: " + relativeGround.velocity);
+			}
 		}
 	}
 	
 	
 	private void splitVelocity(){
 		currentThrottle = Vector3.Dot(rb.velocity, forward_orientation);
-		
 		//limit the throttle by max value:
 		if (currentThrottle > cylinder.maxThrottlePower){
 			currentThrottle = cylinder.maxThrottlePower;
@@ -105,7 +108,6 @@ public class CylinderWheel : MonoBehaviour
 			if (collisionNormal.y < .3f || !_onGround){
 				applyGravity();
 				_gravityAffects = true;
-				//TODO: apply air steering
 			}
 			else _gravityAffects = false;
 			break;
@@ -174,27 +176,44 @@ public class CylinderWheel : MonoBehaviour
 	}
 
     
-	
+	private char[] separator = new char[]{' '};
     void OnCollisionStay(Collision collision)
     {
-        if (collision.gameObject.tag == cylinder.ground_tag)
-        {
-            //We have touched ground:
-            _onGround = true;
+		string[] tags = collision.gameObject.tag.Split(separator);
+		for (int i = 0; i < tags.Length; i++){
 			
-			//Get the collision normal (awesome feature!!!!!):
-			collisionNormal = collision.contacts[0].normal;
-			
-        }
+			switch (tags[i]){
+			case "Ground":
+				//We have touched ground:
+				_onGround = true;
+				
+				//Get the collision normal (awesome feature!!!!!):
+				collisionNormal = collision.contacts[0].normal;
+				break;
+				
+			case "Moving":
+				
+				relativeGround = collision.rigidbody;
+				break;
+			}
+		}
     }
 
     void OnCollisionExit(Collision collision)
     {
-        if (collision.gameObject.tag == cylinder.ground_tag)
-        {
-            //We have left the ground:
-            _onGround = false;
-        }
+		string[] tags = collision.gameObject.tag.Split(separator);
+		for (int i = 0; i < tags.Length; i++){
+			
+			switch (tags[i]){
+			case "Ground":
+				//We have left the ground:
+				_onGround = false;
+				break;
+			case "Moving":
+				relativeGround = null;
+				break;
+			}
+		}
     }
 	
 	public bool OnGround() {
