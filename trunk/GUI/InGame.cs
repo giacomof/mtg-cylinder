@@ -3,44 +3,66 @@ using System.Collections;
 
 public class InGame : MonoBehaviour {
 	public Rigidbody cylinder, LeftWheel, RightWheel;
-	//public ControlScheme controlScheme;
 	float maxCylinder = 0;
 	
 	//Test
+	bool first = true;
+	bool countdownStarted = false;
+	float offset = 0;
+	bool showCounter = false;
 	float displayMinutes, displaySeconds, restSeconds, startTime, timeLeft;
-	int countDownSeconds = 300, roundedRestSeconds;
+	public Font cdFont;
+	int countdownSeconds = 120, roundedRestSeconds;
 	string timetext;
+	//TODO: (JRH) Change to use GUI skin instead
+	GUIStyle cdText = new GUIStyle(), guiStyle = new GUIStyle();		
 
 	// Use this for initialization
 	void Start () {
+		//Setup for countdown clock
+		cdText.font = cdFont;
+		cdText.fontStyle = FontStyle.Bold;
 		startTime = Time.deltaTime;
 	}
 	
 	// Update is called once per frame
-	void Update () {
-
+	//void Update () {
+	void FixedUpdate() {
+		if (Input.GetKeyDown("t"))
+			showCounter = !showCounter;
 	}
 	
 	void OnGUI () {
-		GUIStyle guiStyle = new GUIStyle();
-		//guiStyle.alignment = UpperRight;
-		
 		//Setting count down
-		timeLeft = Time.time - startTime;
-		restSeconds = countDownSeconds - (timeLeft);
+		/*if (first) {
+			countdownSeconds = 120;
+			first = false;
+		}*/
+		if (countdownStarted) {
+			if (first) {
+				first = false;
+				offset = Time.time;
+			}
+			timeLeft = Time.time - startTime - offset;
+		}
+		restSeconds = countdownSeconds - (timeLeft);
 		
 		roundedRestSeconds = Mathf.CeilToInt(restSeconds);
+		if (roundedRestSeconds < 0) {
+			roundedRestSeconds = 0;
+			//TODO: (JRH) EXPLODE!!!
+		}
 		displaySeconds = roundedRestSeconds % 60;
 		displayMinutes = (roundedRestSeconds / 60) %60;
-		
 		timetext = (displayMinutes.ToString() + ":");
 		if (displaySeconds > 9)
 			timetext = timetext + displaySeconds.ToString();
 		else
 			timetext = timetext + "0" + displaySeconds.ToString();
 		
-		GUI.Box(new Rect(0, 0, 100, 50), timetext);
-		GUI.Box(new Rect(Screen.width / 2 -50, 0, 100, 25), "CYLINDREAM");
+		GUI.Box(new Rect(0, 0, 100, 25), "CYLINDREAM");
+		if (showCounter)
+			GUI.Box(new Rect(Screen.width / 2 -50, 0, 100, 50), timetext, cdText);
 		GUI.Box(new Rect (Screen.width - 150,0,150,150), "Input"	+
 			"\nControl Scheme: " +
 			"\nVertical"		+
@@ -64,4 +86,12 @@ public class InGame : MonoBehaviour {
 				maxCylinder = temp;
 		return Mathf.RoundToInt(temp);
 	}
+	
+	public void ShowTimer(bool isShowing) {
+		showCounter = isShowing;
+	}
+	
+	public void StartCountdown(bool start) {
+		countdownStarted = start;
+	}	
 }
