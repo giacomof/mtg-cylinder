@@ -60,8 +60,38 @@ public class CylController : MonoBehaviour
 	public float magnetismForce = 600;
 	public Material standardMaterial, magnetMaterial;
 	
+	//Scripts
+	//public InGame script;
+	GameObject gui;
+	
 	//Axis input
 	float leftWheelXValue = 0, leftWheelYValue = 0, rightWheelXValue = 0, rightWheelYValue = 0;
+
+	void OnTriggerEnter(Collider other) {
+		gui  = GameObject.Find("GUI");
+		switch (other.gameObject.tag) {
+			case "Gate":
+				gui.GetComponent<InGame>().ShowTimer(true);
+				gui.GetComponent<InGame>().StartCountdown(true);
+				break;
+			default:
+				break;
+		}
+	}
+	
+	void OnCollisionStay(Collision other) {
+		gui  = GameObject.Find("GUI");
+		switch(other.gameObject.tag) {
+			case "Boss":
+				//Debug.Log("Near boss");
+				gui.GetComponent<InGame>().StartCountdown(false);
+				break;
+			default:
+				break;
+		}
+	}
+
+	void OnCollisionExit(Collision collision) {}
 	
 	void Start() {
 		// Assign all the used variables
